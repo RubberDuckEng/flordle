@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'dart:math' as math;
 
@@ -43,6 +43,14 @@ class _MyHomePageState extends State<MyHomePage> {
     wordsFuture = _loadWords();
   }
 
+  // This is a hack, but seems close enough?
+  double _scaleFactor(BuildContext context) {
+    var windowSize = MediaQuery.of(context).size;
+    var heightScale = windowSize.height / 700;
+    var widthScale = windowSize.width / 400;
+    return math.min(heightScale, widthScale);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,7 +62,10 @@ class _MyHomePageState extends State<MyHomePage> {
             future: wordsFuture,
             builder: (context, snapshot) {
               if (snapshot.hasData) {
-                return FlordleGame(words: snapshot.data!);
+                return Transform.scale(
+                  scale: _scaleFactor(context),
+                  child: FlordleGame(words: snapshot.data!),
+                );
               } else {
                 return const Center(child: Text('Loading...'));
               }
@@ -111,9 +122,8 @@ class _FlordleGameState extends State<FlordleGame> {
               setState(() {
                 final guess = _model.pendingGuess;
                 if (!widget.words.contains(guess)) {
-                  var snackBar = SnackBar(
-                    content: Text(
-                        'Guesses must be valid words (answer: ${_model.target}).'),
+                  var snackBar = const SnackBar(
+                    content: Text('Guesses must be valid words.'),
                   );
                   ScaffoldMessenger.of(context).showSnackBar(snackBar);
                   _model = _model.withClearPending();
@@ -131,6 +141,7 @@ class FlordleModel {
   final List<String> guesses;
   final String target;
   final String pendingGuess;
+  Map<String, FlordleTileDisposition>? _letterDispositions;
 
   FlordleModel._(
       {required this.guesses,
@@ -143,6 +154,37 @@ class FlordleModel {
       target: target,
       pendingGuess: '',
     );
+  }
+
+  Map<String, FlordleTileDisposition> get letterDispositions {
+    if (_letterDispositions != null) {
+      return _letterDispositions!;
+    }
+    final map = <String, FlordleTileDisposition>{};
+    for (var guessIndex = 0; guessIndex < guesses.length; ++guessIndex) {
+      final guess = guesses[guessIndex];
+      for (var letterIndex = 0; letterIndex < guess.length; ++letterIndex) {
+        final letter = guess[letterIndex];
+        final oldDisposition = map[letter] ?? FlordleTileDisposition.missing;
+        final newDisposition = getDisposition(guessIndex, letterIndex);
+        map[letter] = FlordleTileDisposition
+            .values[math.max(oldDisposition.index, newDisposition.index)];
+      }
+    }
+    _letterDispositions = map;
+    return map;
+  }
+
+  FlordleTileDisposition getDisposition(int guessIndex, int letterIndex) {
+    final guess = guesses[guessIndex];
+    final letter = guess[letterIndex];
+    if (target[letterIndex] == letter) {
+      return FlordleTileDisposition.correct;
+    } else if (target.contains(letter)) {
+      return FlordleTileDisposition.present;
+    } else {
+      return FlordleTileDisposition.missing;
+    }
   }
 
   FlordleModel withGuess(String guess) {
@@ -185,17 +227,17 @@ class FlordleModel {
 }
 
 enum FlordleTileDisposition {
-  // The letter is in the word and in the correct place.
-  correct,
-
-  // The letter is in the word but not in the correct place.
-  present,
+  // The letter has never been guessed.
+  unknown,
 
   // The letter is not in the word.
   missing,
 
-  // The letter has never been guessed.
-  unknown,
+  // The letter is in the word but not in the correct place.
+  present,
+
+  // The letter is in the word and in the correct place.
+  correct,
 }
 
 class FlordleTile extends StatelessWidget {
@@ -281,17 +323,8 @@ class FlordleGrid extends StatelessWidget {
     if (wordIndex >= model.guesses.length) {
       return const FlordleTile.empty();
     }
-    final guess = model.guesses[wordIndex];
-    final letter = guess[letterIndex];
-    FlordleTileDisposition disposition;
-    if (model.target[letterIndex] == letter) {
-      disposition = FlordleTileDisposition.correct;
-    } else if (model.target.contains(letter)) {
-      disposition = FlordleTileDisposition.present;
-    } else {
-      disposition = FlordleTileDisposition.missing;
-    }
-
+    final letter = model.guesses[wordIndex][letterIndex];
+    final disposition = model.getDisposition(wordIndex, letterIndex);
     return FlordleTile(letter: letter, disposition: disposition);
   }
 
@@ -333,7 +366,7 @@ class FlordleKey extends StatelessWidget {
       case FlordleTileDisposition.present:
         return Colors.yellow.shade800;
       case FlordleTileDisposition.missing:
-        return Colors.black26;
+        return Colors.red.shade900;
       case FlordleTileDisposition.unknown:
         return Colors.black45;
     }
@@ -392,7 +425,8 @@ class FlordleKeyboard extends StatelessWidget {
           FlordleKey(
             onKeyPressed: onKeyPressed,
             letter: letters[i],
-            disposition: FlordleTileDisposition.unknown,
+            disposition: model.letterDispositions[letters[i]] ??
+                FlordleTileDisposition.unknown,
           ),
       ],
     );
@@ -400,30 +434,66 @@ class FlordleKeyboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: <Widget>[
-        _buildKeyRow('qwertyuiop'),
-        _buildKeyRow('asdfghjkl'),
-        _buildKeyRow('zxcvbnm'),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            ElevatedButton(
-              onPressed: () {
-                onEnter();
-              },
-              child: const Text('ENTER'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                onBackspace();
-              },
-              child: const Icon(Icons.backspace),
-            ),
-          ],
-        ),
-      ],
+    const letters = 'abcdefghijklmnopqrstuvwxyz';
+    assert(letters.length == 26);
+    final enterEnabled = model.pendingGuess.length == kNumberOfLetters;
+    final backspaceEnabled = model.pendingGuess.isNotEmpty;
+
+    return RawKeyboardListener(
+      autofocus: true,
+      focusNode: FocusNode(),
+      onKey: (event) {
+        if (event is RawKeyDownEvent) {
+          if (enterEnabled &&
+              (event.logicalKey == LogicalKeyboardKey.enter ||
+                  event.logicalKey == LogicalKeyboardKey.numpadEnter)) {
+            onEnter();
+            return;
+          } else if (backspaceEnabled &&
+              event.logicalKey == LogicalKeyboardKey.backspace) {
+            onBackspace();
+            return;
+          }
+        }
+        final char = event.character;
+        if (char == null) {
+          return;
+        }
+        final lowerChar = char.toLowerCase();
+        if (!letters.contains(lowerChar)) {
+          return;
+        }
+        onKeyPressed(lowerChar);
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          _buildKeyRow('qwertyuiop'),
+          _buildKeyRow('asdfghjkl'),
+          _buildKeyRow('zxcvbnm'),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              ElevatedButton(
+                onPressed: enterEnabled
+                    ? () {
+                        onEnter();
+                      }
+                    : null,
+                child: const Text('ENTER'),
+              ),
+              ElevatedButton(
+                onPressed: backspaceEnabled
+                    ? () {
+                        onBackspace();
+                      }
+                    : null,
+                child: const Icon(Icons.backspace),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
