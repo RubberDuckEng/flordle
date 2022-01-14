@@ -204,7 +204,6 @@ ended
 heart
 terms
 staff
-1980s
 lives
 rules
 sixth
@@ -212,14 +211,12 @@ jones
 judge
 refer
 child
-1970s
 train
 sport
 cover
 below
 grade
 scott
-1960s
 maria
 lines
 voice
@@ -231,7 +228,6 @@ mixed
 earth
 daily
 tamil
-1990s
 hills
 score
 start
@@ -283,7 +279,6 @@ davis
 issue
 focus
 basis
-1950s
 agent
 lewis
 blood
@@ -340,7 +335,6 @@ lists
 cells
 metre
 basic
-1930s
 brick
 allen
 egypt
@@ -348,7 +342,6 @@ fleet
 share
 price
 floor
-it's 
 banks
 chile
 singh
@@ -413,7 +406,6 @@ audio
 sabha
 cable
 fruit
-1920s
 boxer
 genre
 break
@@ -481,7 +473,6 @@ pedro
 bring
 lions
 tenth
-1940s
 ideas
 moths
 brief
@@ -608,7 +599,6 @@ aimed
 avoid
 eddie
 lodge
-2000s
 devon
 mason
 silva
@@ -1076,11 +1066,9 @@ minas
 weber
 acids
 lopez
-1880s
 cubic
 sight
 chang
-1890s
 quiet
 pavel
 sindh
@@ -1198,7 +1186,6 @@ intel
 chaos
 quinn
 facts
-1900s
 solve
 famed
 brent
@@ -1221,7 +1208,6 @@ yield
 basil
 viral
 erect
-he's 
 sauce
 paths
 borne
@@ -1276,7 +1262,6 @@ email
 wight
 lyons
 doubt
-1870s
 spike
 shelf
 timor
@@ -1317,7 +1302,6 @@ aided
 boxes
 discs
 blend
-i'll 
 aging
 gould
 baton
@@ -1338,10 +1322,8 @@ khmer
 tubes
 nodes
 reich
-1860s
 malik
 hunan
-49ers
 padma
 arise
 bafta
@@ -1419,16 +1401,13 @@ lined
 seals
 brush
 gifts
-1850s
 pizza
 focal
 fried
 eaton
 tapes
-malmö
 donor
 petty
-i've 
 smile
 upset
 micro
@@ -1511,7 +1490,6 @@ crude
 theta
 eliza
 sabre
-100th
 tutor
 fence
 tango
@@ -1605,10 +1583,7 @@ rolls
 chalk
 thief
 anand
-1910s
 izmir
-d'or 
-2010s
 beech
 mckay
 moray
@@ -1647,7 +1622,6 @@ faint
 mural
 hazel
 icons
-1840s
 arabs
 keeps
 smash
@@ -1742,7 +1716,6 @@ heels
 fanny
 rodeo
 trams
-1830s
 docks
 karim
 penal
@@ -1869,7 +1842,6 @@ cease
 maybe
 sousa
 aztec
-1800s
 brake
 monty
 sonia

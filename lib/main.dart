@@ -403,7 +403,7 @@ class FlordleKey extends StatelessWidget {
   }
 }
 
-class FlordleKeyboard extends StatelessWidget {
+class FlordleKeyboard extends StatefulWidget {
   final FlordleModel model;
   final VoidCallback onEnter;
   final VoidCallback onBackspace;
@@ -417,15 +417,22 @@ class FlordleKeyboard extends StatelessWidget {
     Key? key,
   }) : super(key: key);
 
+  @override
+  State<FlordleKeyboard> createState() => _FlordleKeyboardState();
+}
+
+class _FlordleKeyboardState extends State<FlordleKeyboard> {
+  final focusNode = FocusNode();
+
   Widget _buildKeyRow(String letters) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         for (int i = 0; i < letters.length; ++i)
           FlordleKey(
-            onKeyPressed: onKeyPressed,
+            onKeyPressed: widget.onKeyPressed,
             letter: letters[i],
-            disposition: model.letterDispositions[letters[i]] ??
+            disposition: widget.model.letterDispositions[letters[i]] ??
                 FlordleTileDisposition.unknown,
           ),
       ],
@@ -436,22 +443,22 @@ class FlordleKeyboard extends StatelessWidget {
   Widget build(BuildContext context) {
     const letters = 'abcdefghijklmnopqrstuvwxyz';
     assert(letters.length == 26);
-    final enterEnabled = model.pendingGuess.length == kNumberOfLetters;
-    final backspaceEnabled = model.pendingGuess.isNotEmpty;
+    final enterEnabled = widget.model.pendingGuess.length == kNumberOfLetters;
+    final backspaceEnabled = widget.model.pendingGuess.isNotEmpty;
 
     return RawKeyboardListener(
       autofocus: true,
-      focusNode: FocusNode(),
+      focusNode: focusNode,
       onKey: (event) {
         if (event is RawKeyDownEvent) {
           if (enterEnabled &&
               (event.logicalKey == LogicalKeyboardKey.enter ||
                   event.logicalKey == LogicalKeyboardKey.numpadEnter)) {
-            onEnter();
+            widget.onEnter();
             return;
           } else if (backspaceEnabled &&
               event.logicalKey == LogicalKeyboardKey.backspace) {
-            onBackspace();
+            widget.onBackspace();
             return;
           }
         }
@@ -463,7 +470,7 @@ class FlordleKeyboard extends StatelessWidget {
         if (!letters.contains(lowerChar)) {
           return;
         }
-        onKeyPressed(lowerChar);
+        widget.onKeyPressed(lowerChar);
       },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -477,7 +484,7 @@ class FlordleKeyboard extends StatelessWidget {
               ElevatedButton(
                 onPressed: enterEnabled
                     ? () {
-                        onEnter();
+                        widget.onEnter();
                       }
                     : null,
                 child: const Text('ENTER'),
@@ -485,7 +492,7 @@ class FlordleKeyboard extends StatelessWidget {
               ElevatedButton(
                 onPressed: backspaceEnabled
                     ? () {
-                        onBackspace();
+                        widget.onBackspace();
                       }
                     : null,
                 child: const Icon(Icons.backspace),
